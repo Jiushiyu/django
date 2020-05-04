@@ -1,0 +1,66 @@
+{% extends 'blog/base.html' %}
+{% load blog_tags %}
+
+{% block title %}
+{{ post.title }}
+{% endblock %}
+
+{% block content %}
+    <h1>{{ post.title }}</h1>
+    <p class="date">
+    Published {{ post.publish }} by {{ post.author }}
+    </p>
+{#    {{ post.body|linebreaks }}  使用Markdown时 替换#}
+    {{ post.body|markdown }}
+    <p>
+{#    <!--  {% url %}标签用来反向解析出url   -->#}
+        <a href="{% url "blog:post_share" post.id %}">Share this post</a>
+    </p>
+
+{# 相似tag #}
+    <h2>Similar posts</h2>
+        {% for post in similar_posts %}
+        <p>
+            <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+        </p>
+    {% empty %}
+        There are no similar posts yet.
+    {% endfor %}
+
+    <!--评论总数-->
+{#  comments.count() 在模板中执行一个对象的方法时，不需要加括号；也正因为如此，不能够执行必须带有参数的方法#}
+    {% with comments.count as total_comments %}
+        <h2>
+{#  pluralize 模板过滤器，用于根据 total_comments 的值显示复数词尾#}
+            {{ total_comments }} comment {{ total_comments|pluralize }}
+        </h2>
+    {% endwith %}
+
+{#    增加评论列表  #}
+    {% for comment in comments %}
+        <div class="comment">
+            <p class="info">
+                Comment {{ forloop.conter }} by {{ comment.name }}
+                {{ comment.created }}
+            </p>
+            {{ comment.body|linebreaks }}
+        </div>
+    {% empty %}
+        <p>There are no comments yet.</p>
+    {% endfor %}
+
+{# 显示表单或一条成功信息  #}
+{#       显示一条成功评论的文本#}
+    {% if new_comment %}
+        <h2>Your comment has been added.</h2>
+{#    否则，使用as_p方法渲染整个表单及CSRF token#}
+    {% else %}
+        <h2>Add a new comment</h2>
+        <form action="." method="post">
+        {{ comments_form.as_p }}
+        {% csrf_token %}
+        <p><input type="submit" value="Add comment"></p>
+        </form>
+    {% endif %}
+
+{% endblock %}

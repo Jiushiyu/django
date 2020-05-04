@@ -1,0 +1,39 @@
+{% extends "blog/base.html" %}
+{% load blog_tags %}
+
+{% block title %}My Blog{% endblock %}
+{% block content %}
+    <h1>My Blog</h1>
+    {% for post in posts %}
+        <h2>
+            <a href="{{ post.get_absolute_url }}">
+                {{ post.title }}
+            </a>
+        </h2>
+{#      在文章标题下显示tag  #}
+        {#  显示文章标签的循环代码  #}
+    {% if tag %}
+        <h2>Posts tagged with "{{ tag.name }}</h2>
+    {% endif %}
+    <p class="tag">
+        Tags:
+        {% for tag in post.tags.all %}
+            <a href="{% url "blog:post_list_by_tag" tag.slug %}">{{ tag.name }}</a>
+        {% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </p>
+{#      显示发表时间和作者  #}
+        <p class="date">
+        Published {{ post.publish }} by {{ post.author }}
+        </p>
+{#     显示文章摘要   #}
+{#        {{ post.body|truncatewords:30|linebreaks }} 使用Markdown时 替换#}
+        {{ post.body|markdown|truncatewords_html:30 }}
+    {% endfor %}
+    <!-- post_list函数返回的page参数名是posts，CBV类中内置ListView返回的变量名是page_obj-->
+{#    {% include 'pagination.html' with page=page_obj %}<!--模板参数赋值不能有空格/通过with 重新指定了 变量名称 / 视图触底个列表页的Page对象叫posts-->#}
+{#   由于从CBV 改回为 FBV，所以page变量改回posts #}
+    {% include 'pagination.html' with page=posts %}
+
+{% endblock %}
+
